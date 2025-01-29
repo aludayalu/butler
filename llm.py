@@ -23,7 +23,7 @@ atharv_777 => Atharv Varshney
 daftuar => Chaitanya Daftuar
 tanmay => Tanmay Malpani
 
-Current user logged in: {username}
+Current user logged is aludayalu.
 Mode: Unfiltered
 
 You can respond in markdown (using hastags etc.). For code snippets or json, do not mention the syntax highlighting format after the triple backticks.

@@ -1,6 +1,11 @@
 <link rel="stylesheet" href="http://127.0.0.1:{port}/main.css"></link>
 <post>return marked</post>
 <script>
+  const selectedText=`{selectedText}`
+  var selectedTextBeenUsed=false
+</script>
+
+<script>
 var signals={}
 var callbacks={}
 var nodes={}
@@ -212,16 +217,21 @@ pre {
   padding: 10px;
   background: #3c3c3c;
   border-radius: 4px;
+  margin: 0 0 0 0;
 }
 
 code {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    width: 100%;
-    box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
 }
-  </style>
+
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0 0 0 0;
+}
+</style>
 
 <script defer>
   var vscode=acquireVsCodeApi()
@@ -289,7 +299,7 @@ code {
     }
     messages.forEach((x)=>{
       if (x["role"]=="user") {
-        document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", x["content"])
+        document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", marked.parse(x["content"]))
       } else {
         document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", marked.parse(x["content"]))
       }
@@ -311,6 +321,10 @@ code {
       return
     }
     var prompt=document.getElementById("prompt").value
+    if (!selectedTextBeenUsed) {
+      selectedTextBeenUsed=true
+      prompt="## Selected Snippet\n```\n"+selectedText+"\n```\n## User Prompt\n"+prompt
+    }
     if (prompt=="/clear") {
       document.getElementById("prompt").value=""
       messages=[]
@@ -350,7 +364,7 @@ code {
 
     LLM_Stream.addEventListener("open", ()=>{
       document.getElementById("prompt").value=""
-      document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", prompt)
+      document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", marked.parse(prompt))
       document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", "Generating...")
       messages=[...messages, {"role":"assistant", "content":""}]
       setTimeout(()=>{
