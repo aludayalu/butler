@@ -16,7 +16,7 @@
       "activitybar": [
         {
           "id": "butlerContainer",
-          "title": "AI Butler",
+          "title": "Butler",
           "icon": "resources/icon.png"
         }
       ]
@@ -25,14 +25,14 @@
       "butlerContainer": [
         {
           "id": "butlerSidePanel",
-          "name": "AI Butler Panel"
+          "name": "Butler Panel"
         }
       ]
     },
     "commands": [
       {
         "command": "butler.openSidePanel",
-        "title": "Open AI Butler Panel"
+        "title": "Open Butler"
       }
     ],
     "keybindings": [

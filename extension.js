@@ -71,7 +71,7 @@ class ButlerPanel {
 
         const panel = vscode.window.createWebviewPanel(
             "butlerSidePanel",
-            "AI Butler",
+            "Butler",
             { viewColumn: vscode.ViewColumn.Two, preserveFocus: false },
             { enableScripts: true }
         );
@@ -98,23 +98,48 @@ class ButlerPanel {
     }
 
     getHtmlContent(selectedText) {
-        return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>AI Butler</title>
-        </head>
-        <body>
-            <h2>Selected Text</h2>
-            <p id="selectedText">${selectedText || "No text selected"}</p>
-            <button id="analyzeBtn">Analyze Text</button>
+        return `
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <div id="root">
+        <h1>Your Butler is starting!</h1>
+    </div>
 
-            <script>
-                
-            </script>
-        </body>
-        </html>`;
+    <script>
+        var html="";
+        const apiUrl = "http://127.0.0.1:${port}";
+
+        setTimeout(async ()=>{
+            while (true) {
+                try {
+                    var request=await fetch(apiUrl);
+                    html=await request.text()
+                    document.getElementById("root").innerHTML=html;
+                    executeScripts(document.getElementById("root"));
+                    break;
+                } catch (e) {
+                    console.log(e);
+                    continue;
+                }
+            }
+        }, 1000);
+
+        function executeScripts(element) {
+            element.querySelectorAll("script").forEach(script => {
+                const newScript = document.createElement("script")
+                if (script.src) {
+                    newScript.src = script.src
+                } else {
+                    newScript.textContent = script.textContent
+                }
+                script.parentNode.replaceChild(newScript, script)
+            })
+        }
+    </script>
+</body>
+</html>
+`;
     }
 }
 
