@@ -135,7 +135,6 @@ class ButlerPanel {
                 var url=`http://127.0.0.1:${port}`
                 var request=await fetch(url);
                 var html=await request.text()
-                fetch(url+"/prompt?prompt=hi")
                 return html.replaceAll("{port}", String(port)).replaceAll("{selectedText}", selectedText.replace(/`/g, "\\`").replace(/\${/g, "\\${").replace(/}/g, "\\}"));
             } catch {
                 continue
