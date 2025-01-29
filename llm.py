@@ -38,7 +38,7 @@ def quick_response(prompt):
     }
     payload = {
         "model": "deepseek-coder-v2",
-        "messages": [{"role":"system", "content":"For each user question, respond with a one liner title. One liner title is a summary for the user. Do not write helper text or helpful text as your response or even for the title. The title needs to be very succinct and the user can only see 4 words of it. Do not respond to the message only give the message a title. Assume that you are chatgpt and you are a chat interface so you have to simply give a title to each and every message for the covnersation to initiate. Only respond DIRECTLY to the title without and helper text at all. No labels. Only the title. Just assume that the question is directed to you so give the title in first person in your perspective."}, {"role": "user", "content": prompt}],
+        "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
         "stream": False
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
@@ -50,7 +50,7 @@ def send_message(prompt, history=[]):
     }
     payload = {
         "model": "deepseek-coder-v2",
-        "messages": history + [{"role": "user", "content": prompt}],
+        "messages": history + [system_prompt[0], {"role": "user", "content": prompt}],
         "stream": True
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
