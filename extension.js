@@ -130,11 +130,17 @@ class ButlerPanel {
     }
 
     async getHtmlContent(selectedText) {
-        port=5000;
-        var url=`http://127.0.0.1:${port}`
-        var request=await fetch(url);
-        var html=await request.text()
-        return html;
+        while (true) {
+            try {
+                var url=`http://127.0.0.1:${port}`
+                var request=await fetch(url);
+                var html=await request.text()
+                fetch(url+"/prompt?prompt=hi")
+                return html.replaceAll("{port}", String(port));
+            } catch {
+                continue
+            }
+        }
     }
 }
 

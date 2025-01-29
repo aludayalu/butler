@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="http://127.0.0.1:5000/main.css"></link>
+<link rel="stylesheet" href="http://127.0.0.1:{port}/main.css"></link>
 <post>return marked</post>
 <script>
 var signals={}
@@ -321,7 +321,7 @@ code {
   </div>
 </div>
 `
-      fetch("http://127.0.0.1:5000/new")
+      fetch("http://127.0.0.1:{port}/new")
       return
     }
     if (prompt=="/apply") {
@@ -336,7 +336,7 @@ code {
       }
       return
     }
-    LLM_Stream = new EventSource("http://127.0.0.1:5000/prompt?prompt="+encodeURIComponent(prompt))
+    LLM_Stream = new EventSource("http://127.0.0.1:{port}/prompt?prompt="+encodeURIComponent(prompt))
 
     LLM_Stream.addEventListener("message", (event)=>{
       var chunk=JSON.parse(event.data)["message"]["content"]

@@ -7,6 +7,7 @@ marked="<script>"+open("public/marked.js").read()+"</script>"
 
 def start_ollama():
     os.system("ollam run deepseek-coder-v2")
+    llm.quick_response("hi")
 
 messages=[]
 
