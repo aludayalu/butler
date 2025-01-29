@@ -1,0 +1,62 @@
+{
+  "name": "butler",
+  "displayName": "butler",
+  "description": "Conversational and contextual code generation tool",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "butlerContainer",
+          "title": "AI Butler",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "butlerContainer": [
+        {
+          "id": "butlerSidePanel",
+          "name": "AI Butler Panel"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "butler.openSidePanel",
+        "title": "Open AI Butler Panel"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "butler.openSidePanel",
+        "key": "ctrl+.",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.16.0"
+  },
+  "dependencies": {
+    "vsce": "^2.15.0"
+  }
+}
