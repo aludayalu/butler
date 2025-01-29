@@ -1,1 +1,373 @@
-Hello!
+<link rel="stylesheet" href="http://127.0.0.1:5000/main.css"></link>
+<post>return marked</post>
+<script>
+var signals={}
+var callbacks={}
+var nodes={}
+var parents={}
+
+function AddParent(id, parent) {
+    parents[id]=parent
+}
+
+function AddNode(element, id) {
+    var current=nodes[id]
+    while (current) {
+        current.push(element)
+        id=parents[id]
+        current=nodes[id]
+    }
+}
+
+function RemoveNode(id) {
+    if (id==undefined) {
+        return
+    }
+    nodes[id].forEach((x)=>{
+        x.remove()
+    })
+    delete nodes[id]
+    var toremove=[]
+    for (let index = 0; index < Object.keys(parents).length; index++) {
+        const element = Object.keys(parents)[index]
+        if (parents[element]===id) {
+            toremove.push(element)
+            RemoveNode(element)
+        }
+    }
+    toremove.forEach((x)=>{
+        delete parents[x]
+    })
+}
+
+function Signal(id, value) {
+    if (id == undefined) {
+        throw "id cannot be undefined";
+    }
+    signals[id] = {
+        "Value": () => value,
+        "setValue": async (value) => {
+            signals[id]["Value"] = () => value;
+            var newCallbacks = [];
+            for (var i = callbacks[id].length - 1; i >= 0; i--) {
+                try {
+                    await callbacks[id][i]();
+                    newCallbacks.unshift(callbacks[id][i]);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            callbacks[id] = newCallbacks;
+        }
+    };
+    if (callbacks[id] === undefined) {
+        callbacks[id] = [];
+    }
+    return signals[id];
+}
+
+function OnChange(id, callback) {
+    if (callbacks[id] === undefined) {
+        callbacks[id] = [];
+    }
+    callbacks[id].push(callback);
+}
+
+function DerivedFrom(id, value, dependsOn) {
+    if (id == undefined) {
+        throw "id cannot be undefined";
+    }
+    signals[id] = { "Value": value };
+    if (callbacks[id] === undefined) {
+        callbacks[id] = [];
+    }
+    dependsOn.forEach((x) => {
+        if (callbacks[x] === undefined) {
+            callbacks[x] = [];
+        }
+        callbacks[x].push(async (y) => {
+            var newCallbacks = [];
+            for (var i = callbacks[id].length - 1; i >= 0; i--) {
+                try {
+                    await callbacks[id][i]();
+                    newCallbacks.unshift(callbacks[id][i]);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            callbacks[id] = newCallbacks;
+        });
+    });
+    return signals[id];
+}
+
+function GetSignal(id) {
+    return signals[id]
+}
+
+function executeScripts(element) {
+    element.querySelectorAll("script").forEach(script => {
+        const newScript = document.createElement("script")
+        if (script.src) {
+            newScript.src = script.src
+        } else {
+            newScript.textContent = script.textContent
+        }
+        script.parentNode.replaceChild(newScript, script)
+    })
+}
+
+function GenerateUUID() {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    array[6] = (array[6] & 0x0f) | 0x40;
+    array[8] = (array[8] & 0x3f) | 0x80;
+    const hexArray = [...array].map(b => b.toString(16).padStart(2, '0'));
+    return [
+      hexArray.slice(0, 4).join(''),
+      hexArray.slice(4, 6).join(''),
+      hexArray.slice(6, 8).join(''),
+      hexArray.slice(8, 10).join(''),
+      hexArray.slice(10, 16).join('')
+    ].join('-');
+  }
+</script>
+
+<script>
+  const urlPath = window.location.pathname
+</script>
+
+<style>
+  .input {
+      color: white;
+      height: 45px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+      box-shadow: 0px 0px 20px -18px;
+  }
+  
+  .input:hover {
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0px 0px 20px -17px;
+  }
+  
+  .input:active {
+      transform: scale(0.95);
+  }
+  
+  .input:focus {
+      border: 2px solid rgba(255, 255, 255, 0.15);
+  }
+  .btn {
+  border: none;
+  width: max-content;
+  height: 5vh;
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 450ms ease-in-out;
+  padding-left: 16px;
+}
+
+.sparkle {
+  fill: #AAAAAA;
+  transition: all 800ms ease;
+}
+
+.text {
+  font-weight: 600;
+  color: #AAAAAA;
+  font-size: 14px;
+}
+
+.btn:hover {
+  background: linear-gradient(0deg,#A47CF3,#683FEA);
+  box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
+  inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
+  0px 0px 0px 4px rgba(255, 255, 255, 0.2),
+  0px 0px 180px 0px #9917FF;
+  transform: translateY(-2px);
+}
+
+.btn:hover .text {
+  color: white;
+}
+
+.btn:hover .sparkle {
+  fill: white;
+  transform: scale(1.2);
+}
+
+.textarea:focus {
+  outline: 1.4px solid rgba(255, 255, 255, 0.25);
+}
+
+pre {
+  padding: 10px;
+  background: #3c3c3c;
+  border-radius: 4px;
+}
+
+code {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+    box-sizing: border-box;
+}
+  </style>
+
+<script defer>
+  var vscode=acquireVsCodeApi()
+  document.title="Butler"
+  var messages=<post>return json.dumps(messages)</post>
+
+  var showNewChat=DerivedFrom("showNewChat", ()=>{
+    if (messages.length==0) {
+      return true
+    } else {
+      return false
+    }
+  }, [])
+
+</script>
+
+<div class="wrapper">
+    <div>
+      <div id="chat_bubbles" style="height: 90vh; width: 100vw; overflow-y: auto;">
+        <div class="wrapper" style="height: 95%; width: 100%;">
+          <div>
+            <h1>Butler</h1>
+          </div>
+        </div>
+      </div>
+      <div style="height: 10vh; width: 100vw;" class="wrapper">
+        <textarea id="prompt" class="textarea" style="padding: 5px; border-radius: 10px; border: 1.4px solid rgba(255, 255, 255, 0.15); width: 90vw; height: 5vh; background: transparent; color: white;"
+        placeholder="Message here"
+        ></textarea>
+      </div>
+    </div>
+</div>
+
+<script>
+  document.addEventListener("keypress", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault(); // Prevents default behavior (e.g., new line in textareas)
+        Generate();
+    }
+});
+
+  var AI_SNIPPET=`
+  <div style="padding:1vw; padding-left:2vw;" class="wrapper">
+      <div style="margin-bottom: auto;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-server"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"></rect><rect width="20" height="8" x="2" y="14" rx="2" ry="2"></rect><line x1="6" x2="6.01" y1="6" y2="6"></line><line x1="6" x2="6.01" y1="18" y2="18"></line></svg>
+      </div>
+      <div class="wrap" style="width: 90vw; margin-left: 1vw; border: 1.4px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 10px;">
+        {text}
+      </div>
+    </div>
+  `
+
+  var USER_SNIPPET=`
+  <div style="padding:1vw; padding-left:2vw;" class="wrapper">
+      <div style="margin-bottom: auto;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-speech"><path d="M8.8 20v-4.1l1.9.2a2.3 2.3 0 0 0 2.164-2.1V8.3A5.37 5.37 0 0 0 2 8.25c0 2.8.656 3.054 1 4.55a5.77 5.77 0 0 1 .029 2.758L2 20"></path><path d="M19.8 17.8a7.5 7.5 0 0 0 .003-10.603"></path><path d="M17 15a3.5 3.5 0 0 0-.025-4.975"></path></svg>
+      </div>
+      <div class="wrap" style="width: 90vw; margin-left: 1vw; border: 1.4px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 10px; white-space: pre-wrap;">{text}</div>
+    </div>
+  `
+
+  function Load_Conversation() {
+    if (messages.length!=0) {
+      document.getElementById("chat_bubbles").innerHTML=""
+    }
+    messages.forEach((x)=>{
+      if (x["role"]=="user") {
+        document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", x["content"])
+      } else {
+        document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", marked.parse(x["content"]))
+      }
+    })
+    setTimeout(()=>{
+      document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
+    }, 100)
+  }
+
+  var LLM_Stream=null;
+
+  function Generate() {
+    if (messages.length==0) {
+      document.getElementById("chat_bubbles").innerHTML=""
+    }
+    if (LLM_Stream!=null) {
+      LLM_Stream.close()
+      LLM_Stream=null
+      return
+    }
+    var prompt=document.getElementById("prompt").value
+    if (prompt=="/clear") {
+      document.getElementById("prompt").value=""
+      messages=[]
+      document.getElementById("chat_bubbles").innerHTML=`
+<div class="wrapper" style="height: 95%; width: 100%;">
+  <div>
+    <h1>Butler</h1>
+  </div>
+</div>
+`
+      fetch("http://127.0.0.1:5000/new")
+      return
+    }
+    if (prompt=="/apply") {
+      document.getElementById("prompt").value=""
+      var code_blocks=Array.from(document.querySelectorAll("code")).reverse()
+      for (let index = 0; index < code_blocks.length; index++) {
+        const element = code_blocks[index];
+        if (Array.from(element.classList).join("").includes("language")) {
+          vscode.postMessage({ command: "updateText", text: element.innerText })
+          break
+        }
+      }
+      return
+    }
+    LLM_Stream = new EventSource("http://127.0.0.1:5000/prompt?prompt="+encodeURIComponent(prompt))
+
+    LLM_Stream.addEventListener("message", (event)=>{
+      var chunk=JSON.parse(event.data)["message"]["content"]
+      var bubbles=document.getElementById("chat_bubbles").children
+      messages[messages.length-1]["content"]+=chunk
+      bubbles[bubbles.length-1].children[1].innerHTML=marked.parse(messages[messages.length-1]["content"])
+      setTimeout(()=>{
+        document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
+      }, 100)
+    })
+
+    LLM_Stream.addEventListener("open", ()=>{
+      document.getElementById("prompt").value=""
+      document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", prompt)
+      document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", "Generating...")
+      messages=[...messages, {"role":"assistant", "content":""}]
+      setTimeout(()=>{
+        document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
+      }, 100)
+    })
+
+    LLM_Stream.addEventListener("error", (error) => {
+      LLM_Stream.close()
+      LLM_Stream=null
+    });
+    
+  }
+
+  Load_Conversation()
+</script>
+
+<script>
+  document.getElementById("prompt").focus()
+</script>

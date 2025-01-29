@@ -37,11 +37,20 @@ findAvailablePort().then((availablePort) => {
 	console.log(availablePort)
 });
 
+var activeEditor=null;
+
 function activate(context) {
 	console.log("Your butler is now running!")
 
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor) {
+            activeEditor = editor;
+        }
+    });
+
     let disposable = vscode.commands.registerCommand("butler.openSidePanel", function () {
         const editor = vscode.window.activeTextEditor;
+        activeEditor=editor;
         if (!editor) {
             return;
         }
@@ -86,10 +95,33 @@ class ButlerPanel {
         this._panel.onDidDispose(() => this.dispose(), null, context.subscriptions);
 
         this.update(selectedText);
+
+        this._panel.webview.onDidReceiveMessage(
+            (message) => {
+                switch (message.command) {
+                    case "updateText":
+                        ButlerPanel.replaceSelectedText(message.text);
+                        break;
+                }
+            },
+            null,
+            context.subscriptions
+        );
     }
 
-    update(selectedText) {
-        this._panel.webview.html = this.getHtmlContent(selectedText);
+    static replaceSelectedText(newText) {
+        if (!activeEditor) {
+            vscode.window.showErrorMessage("No active editor found.");
+            return;
+        }
+    
+        activeEditor.edit((editBuilder) => {
+            editBuilder.replace(activeEditor.selection, newText);
+        });
+    }
+
+    async update(selectedText) {
+        this._panel.webview.html = await this.getHtmlContent(selectedText);
     }
 
     dispose() {
@@ -97,49 +129,12 @@ class ButlerPanel {
         this._panel.dispose();
     }
 
-    getHtmlContent(selectedText) {
-        return `
-<!DOCTYPE html>
-<html lang="en">
-<body>
-    <div id="root">
-        <h1>Your Butler is starting!</h1>
-    </div>
-
-    <script>
-        var html="";
-        const apiUrl = "http://127.0.0.1:${port}";
-
-        setTimeout(async ()=>{
-            while (true) {
-                try {
-                    var request=await fetch(apiUrl);
-                    html=await request.text()
-                    document.getElementById("root").innerHTML=html;
-                    executeScripts(document.getElementById("root"));
-                    break;
-                } catch (e) {
-                    console.log(e);
-                    continue;
-                }
-            }
-        }, 1000);
-
-        function executeScripts(element) {
-            element.querySelectorAll("script").forEach(script => {
-                const newScript = document.createElement("script")
-                if (script.src) {
-                    newScript.src = script.src
-                } else {
-                    newScript.textContent = script.textContent
-                }
-                script.parentNode.replaceChild(newScript, script)
-            })
-        }
-    </script>
-</body>
-</html>
-`;
+    async getHtmlContent(selectedText) {
+        port=5000;
+        var url=`http://127.0.0.1:${port}`
+        var request=await fetch(url);
+        var html=await request.text()
+        return html;
     }
 }
 

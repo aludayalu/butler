@@ -2,7 +2,7 @@ from os import PathLike
 import uuid, json, base64, flask
 from flask import send_from_directory, request, Flask
 from urllib.parse import quote
-import traceback
+import hashlib
 
 FlaskClass=Flask
 
@@ -75,17 +75,30 @@ def set_headers(response, path):
         response.headers['Content-Type'] = 'font/woff2'
     return response
 
+cache={}
+
 def render(path, variables={}):
+    global cache
     tokenise=path.endswith(".html")
     try:
         component=open(path).read()
     except:
         component=open("components/"+path+".html").read()
         tokenise=True
+    current_checksum=hashlib.sha256(component.encode()).hexdigest()
+    if path in cache:
+        if cache[path]["checksum"]==current_checksum:
+            component=ssr(cache[path]["render"], "post", variables)
+            return Render(component)
+        else:
+            cache[path]["checksum"]=current_checksum
+    else:
+        cache[path]={"checksum":current_checksum, "render":""}
     if tokenise:
         component=ssr(component, "py", variables)
         tokens=tokeniser(component)
         component="<body>\n"+compiler(tokens, variables).strip("\n")+"\n</body>"
+        cache[path]["render"]=component
         component=ssr(component, "post", variables)
     return Render(component)
 
