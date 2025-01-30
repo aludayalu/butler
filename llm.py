@@ -56,21 +56,17 @@ def send_message(prompt, history=[]):
     response = requests.post(url, headers=headers, json=payload, stream=True)
     return response
 
-def proxy_stream(response, full_handle=lambda x:x):
+def proxy_stream(response, handler=lambda x:x):
     out_buffer = b""
-    full_output=""
-    
     for chunk in response.iter_content():
         for x in chunk:
             x=bytes([x])
             if x==b"\n":
-                full_output+=json.loads(out_buffer.decode())["message"]["content"]
+                handler(json.loads(out_buffer.decode())["message"]["content"])
                 yield b"data: "+out_buffer+b"\n\n"
                 out_buffer=b""
             else:
                 out_buffer+=x
-    
-    full_handle(full_output)
 
     if out_buffer!=b"":
         yield b"data: "+out_buffer+b"\n\n"

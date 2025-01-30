@@ -30,10 +30,11 @@ def prompt():
     global messages
     user_prompt=request.args["prompt"]
     messages.append({"role": "user", "content": user_prompt})
-    def handler_full(response):
+    messages.append({"role":"assistant", "content": ""})
+    def handler(chunk):
         global messages
-        messages.append({"role":"assistant", "content": response})
-    response=flask.Response(llm.proxy_stream(llm.send_message(user_prompt, messages[:len(messages)-1]), full_handle=handler_full), content_type="text/event-stream")
+        messages[-1]["content"]+=chunk
+    response=flask.Response(llm.proxy_stream(llm.send_message(user_prompt, messages[:len(messages)-1]), handler=handler), content_type="text/event-stream")
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add("Access-Control-Allow-Headers", "*")
     return response

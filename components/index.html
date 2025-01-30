@@ -312,18 +312,22 @@ h1, h2, h3, h4, h5, h6, p {
   var LLM_Stream=null;
 
   function Generate() {
-    if (messages.length==0) {
-      document.getElementById("chat_bubbles").innerHTML=""
+    var prompt=document.getElementById("prompt").value
+    if (prompt=="/apply") {
+      document.getElementById("prompt").value=""
+      var code_blocks=Array.from(document.querySelectorAll("code")).reverse()
+      for (let index = 0; index < code_blocks.length; index++) {
+        const element = code_blocks[index];
+        if (Array.from(element.classList).join("").includes("language")) {
+          vscode.postMessage({ command: "updateText", text: element.innerText })
+          break
+        }
+      }
+      return
     }
     if (LLM_Stream!=null) {
       LLM_Stream.close()
       LLM_Stream=null
-      return
-    }
-    var prompt=document.getElementById("prompt").value
-    if (!selectedTextBeenUsed) {
-      selectedTextBeenUsed=true
-      prompt="## Selected Snippet\n```\n"+selectedText+"\n```\n## User Prompt\n"+prompt
     }
     if (prompt=="/clear") {
       document.getElementById("prompt").value=""
@@ -338,17 +342,12 @@ h1, h2, h3, h4, h5, h6, p {
       fetch("http://127.0.0.1:{port}/new")
       return
     }
-    if (prompt=="/apply") {
-      document.getElementById("prompt").value=""
-      var code_blocks=Array.from(document.querySelectorAll("code")).reverse()
-      for (let index = 0; index < code_blocks.length; index++) {
-        const element = code_blocks[index];
-        if (Array.from(element.classList).join("").includes("language")) {
-          vscode.postMessage({ command: "updateText", text: element.innerText })
-          break
-        }
-      }
-      return
+    if (!selectedTextBeenUsed) {
+      selectedTextBeenUsed=true
+      prompt="## Selected Snippet\n```\n"+selectedText+"\n```\n## User Prompt\n"+prompt
+    }
+    if (messages.length==0) {
+      document.getElementById("chat_bubbles").innerHTML=""
     }
     LLM_Stream = new EventSource("http://127.0.0.1:{port}/prompt?prompt="+encodeURIComponent(prompt))
 
