@@ -3,6 +3,44 @@
 <script>
   const selectedText=`{selectedText}`
   var selectedTextBeenUsed=false
+
+  function getLanguageFromExtension(extension) {
+    const extensionMap = {
+      "js": "javascript",
+      "ts": "typescript",
+      "py": "python",
+      "java": "java",
+      "cpp": "cpp",
+      "c": "c",
+      "cs": "csharp",
+      "rb": "ruby",
+      "php": "php",
+      "swift": "swift",
+      "go": "go",
+      "rs": "rust",
+      "kt": "kotlin",
+      "html": "html",
+      "css": "css",
+      "scss": "scss",
+      "sh": "shell",
+      "bat": "batch",
+      "json": "json",
+      "yaml": "yaml",
+      "xml": "xml",
+      "sql": "sql",
+      "r": "r",
+      "pl": "perl",
+      "lua": "lua",
+      "dart": "dart",
+      "md": "markdown",
+      "jsx": "javascript",
+      "tsx": "typescript",
+    };
+
+    return extensionMap[extension.toLowerCase()] || "text";
+  }
+
+  const snippetLanguage=getLanguageFromExtension("{extension}")
 </script>
 
 <script>
@@ -228,8 +266,22 @@ code {
   box-sizing: border-box;
 }
 
+code pre {
+  padding: 5px !important;
+  background-color: #1e1e1e !important;
+}
+
+pre:not([class]) {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 h1, h2, h3, h4, h5, h6, p {
   margin: 0 0 0 0;
+}
+
+code {
+  background-color: transparent !important;
 }
 </style>
 
@@ -265,10 +317,35 @@ h1, h2, h3, h4, h5, h6, p {
     </div>
 </div>
 
-<script>
+<script type="module">
+  import { codeToHtml } from "https://esm.run/shiki@1.0.0"
+
+  async function ParseMarkdown(markdown) {
+    var elem=document.createElement("div")
+    elem.innerHTML=marked.parse(markdown)
+    var codeBlocks=Array.from(elem.querySelectorAll("code"))
+    for (let index = 0; index < codeBlocks.length; index++) {
+      const element = codeBlocks[index];
+      var ElementClass=Array.from(element.classList)[0]
+      if (!ElementClass) {
+        continue
+      }
+      if (!ElementClass.includes("language")) {
+        continue
+      }
+      var text=element.innerText
+      element.innerText=""
+      element.innerHTML=await codeToHtml(text, {
+        theme: "dark-plus",
+        lang: ElementClass.split("language-")[1]
+      })
+    }
+    return elem.innerHTML
+  }
+
   document.addEventListener("keypress", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault(); // Prevents default behavior (e.g., new line in textareas)
+        event.preventDefault();
         Generate();
     }
 });
@@ -293,17 +370,18 @@ h1, h2, h3, h4, h5, h6, p {
     </div>
   `
 
-  function Load_Conversation() {
+  async function Load_Conversation() {
     if (messages.length!=0) {
       document.getElementById("chat_bubbles").innerHTML=""
     }
-    messages.forEach((x)=>{
+    for (let index = 0; index < messages.length; index++) {
+      var x = messages[index];
       if (x["role"]=="user") {
-        document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", marked.parse(x["content"]))
+        document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", await ParseMarkdown(x["content"]))
       } else {
-        document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", marked.parse(x["content"]))
+        document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", await ParseMarkdown(x["content"]))
       }
-    })
+    }
     setTimeout(()=>{
       document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
     }, 100)
@@ -344,26 +422,26 @@ h1, h2, h3, h4, h5, h6, p {
     }
     if (!selectedTextBeenUsed) {
       selectedTextBeenUsed=true
-      prompt="## Selected Snippet\n```\n"+selectedText+"\n```\n## User Prompt\n"+prompt
+      prompt="## Selected Snippet\n```"+snippetLanguage+"\n"+selectedText+"\n```\n## User Prompt\n"+prompt
     }
     if (messages.length==0) {
       document.getElementById("chat_bubbles").innerHTML=""
     }
     LLM_Stream = new EventSource("http://127.0.0.1:{port}/prompt?prompt="+encodeURIComponent(prompt))
 
-    LLM_Stream.addEventListener("message", (event)=>{
+    LLM_Stream.addEventListener("message", async (event)=>{
       var chunk=JSON.parse(event.data)["message"]["content"]
       var bubbles=document.getElementById("chat_bubbles").children
       messages[messages.length-1]["content"]+=chunk
-      bubbles[bubbles.length-1].children[1].innerHTML=marked.parse(messages[messages.length-1]["content"])
+      bubbles[bubbles.length-1].children[1].innerHTML=await ParseMarkdown(messages[messages.length-1]["content"])
       setTimeout(()=>{
         document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
       }, 100)
     })
 
-    LLM_Stream.addEventListener("open", ()=>{
+    LLM_Stream.addEventListener("open", async ()=>{
       document.getElementById("prompt").value=""
-      document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", marked.parse(prompt))
+      document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", await ParseMarkdown(prompt))
       document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", "Generating...")
       messages=[...messages, {"role":"assistant", "content":""}]
       setTimeout(()=>{

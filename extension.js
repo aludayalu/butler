@@ -1,6 +1,7 @@
 const vscode = require("vscode");
 const net = require("net");
 const { exec } = require("child_process");
+const path = require("path")
 var port=0;
 
 function isPortInUse(port) {
@@ -74,7 +75,6 @@ class ButlerPanel {
     static createOrShow(context, selectedText) {
         if (ButlerPanel.currentPanel) {
             ButlerPanel.currentPanel._panel.reveal(vscode.ViewColumn.Two);
-            ButlerPanel.currentPanel.update(selectedText);
             return;
         }
 
@@ -94,7 +94,9 @@ class ButlerPanel {
 
         this._panel.onDidDispose(() => this.dispose(), null, context.subscriptions);
 
-        this.update(selectedText);
+        var extension=path.extname(vscode.window.activeTextEditor.document.uri.fsPath)
+
+        this.update(selectedText, extension);
 
         this._panel.webview.onDidReceiveMessage(
             (message) => {
@@ -120,8 +122,8 @@ class ButlerPanel {
         });
     }
 
-    async update(selectedText) {
-        this._panel.webview.html = await this.getHtmlContent(selectedText);
+    async update(selectedText, extension) {
+        this._panel.webview.html = await this.getHtmlContent(selectedText, extension);
     }
 
     dispose() {
@@ -129,13 +131,13 @@ class ButlerPanel {
         this._panel.dispose();
     }
 
-    async getHtmlContent(selectedText) {
+    async getHtmlContent(selectedText, extension) {
         while (true) {
             try {
                 var url=`http://127.0.0.1:${port}`
                 var request=await fetch(url);
                 var html=await request.text()
-                return html.replaceAll("{port}", String(port)).replaceAll("{selectedText}", selectedText.replace(/`/g, "\\`").replace(/\${/g, "\\${").replace(/}/g, "\\}"));
+                return html.replaceAll("{port}", String(port)).replaceAll("{selectedText}", selectedText.replace(/`/g, "\\`").replace(/\${/g, "\\${").replace(/}/g, "\\}")).replace("{extension}", extension.slice(1));
             } catch {
                 continue
             }
