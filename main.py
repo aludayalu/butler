@@ -1,6 +1,7 @@
 from flask import request, redirect
 from monster import render, Flask
-import sys, json, os, threading, llm, flask
+import sys, json, os, threading, flask
+import llm
 
 app = Flask(__name__)
 marked="<script>"+open("public/marked.js").read()+"</script>"
