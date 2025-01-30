@@ -6,7 +6,7 @@ app = Flask(__name__)
 marked="<script>"+open("public/marked.js").read()+"</script>"
 
 def start_ollama():
-    os.system("ollam run deepseek-coder-v2")
+    os.system("ollam run phi4")
     llm.quick_response("hi")
 
 messages=[]

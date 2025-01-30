@@ -37,7 +37,7 @@ def quick_response(prompt):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "deepseek-coder-v2",
+        "model": "phi4",
         "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
         "stream": False
     }
@@ -49,7 +49,7 @@ def send_message(prompt, history=[]):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "deepseek-coder-v2",
+        "model": "phi4",
         "messages": history + [system_prompt[0], {"role": "user", "content": prompt}],
         "stream": True
     }
