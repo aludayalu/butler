@@ -57,7 +57,7 @@ def quick_response(prompt):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "phi4",
+        "model": "llama3.1:8b",
         "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
         "stream": False
     }
@@ -78,7 +78,7 @@ def send_message(prompt, history=[]):
     system_prompt["content"]=system_prompt["content"].replace("{time}", formatted_datetime)
 
     payload = {
-        "model": "phi4",
+        "model": "llama3.1:8b",
         "messages": history + [system_prompt, {"role": "user", "content": prompt}],
         "stream": True
     }

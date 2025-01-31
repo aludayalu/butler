@@ -7,7 +7,7 @@ app = Flask(__name__)
 marked="<script>"+open("public/marked.js").read()+"</script>"
 
 def start_ollama():
-    os.system("ollam run phi4")
+    os.system("ollam run llama3.1:8b")
     llm.quick_response("hi")
 
 messages=[]
