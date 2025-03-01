@@ -57,7 +57,7 @@ def quick_response(prompt):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "qwen2.5-coder:7b",
+        "model": "codegeex4",
         "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
         "stream": False
     }
@@ -78,7 +78,7 @@ def send_message(prompt, history=[]):
     system_prompt["content"]=system_prompt["content"].replace("{time}", formatted_datetime)
 
     payload = {
-        "model": "qwen2.5-coder:7b",
+        "model": "codegeex4",
         "messages": history + [system_prompt, {"role": "user", "content": prompt}],
         "stream": True
     }

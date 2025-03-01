@@ -7,7 +7,7 @@ app = Flask(__name__)
 marked="<script>"+open("public/marked.js").read()+"</script>"
 
 def start_ollama():
-    os.system("ollama run qwen2.5-coder:7b")
+    os.system("ollama run codegeex4")
     llm.quick_response("hi")
 
 messages=[]
