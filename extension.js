@@ -31,7 +31,7 @@ async function findAvailablePort() {
 }
 
 findAvailablePort().then((availablePort) => {
-    exec("python3 main.py "+availablePort, {
+    exec("python main.py "+availablePort, {
 		cwd: __dirname
 	})
 	port=availablePort
