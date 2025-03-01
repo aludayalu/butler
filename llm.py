@@ -59,7 +59,10 @@ def quick_response(prompt):
     payload = {
         "model": "codegeex4",
         "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
-        "stream": False
+        "stream": False,
+        "options": {
+            "num_ctx": 24576
+        }
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
     return response.json()["message"]["content"]
@@ -80,7 +83,10 @@ def send_message(prompt, history=[]):
     payload = {
         "model": "codegeex4",
         "messages": [system_prompt] + history + [{"role": "user", "content": prompt}],
-        "stream": True
+        "stream": True,
+        "options": {
+            "num_ctx": 24576
+        }
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
     return response
