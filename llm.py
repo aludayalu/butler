@@ -79,7 +79,7 @@ def send_message(prompt, history=[]):
 
     payload = {
         "model": "codegeex4",
-        "messages": history + [system_prompt, {"role": "user", "content": prompt}],
+        "messages": [system_prompt] + history + [{"role": "user", "content": prompt}],
         "stream": True
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
