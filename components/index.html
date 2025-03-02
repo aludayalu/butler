@@ -432,13 +432,36 @@ textarea {
       fetch("http://127.0.0.1:{port}/new")
       return
     }
+
     prompt = String(prompt).trimStart()
+
     if (String(prompt).startsWith("/snippet")) {
       prompt="## Selected Snippet\n```"+snippetLanguage+"\n"+selectedText+"\n```\n## User Prompt\n"+String(prompt).slice("/snippet".length + 1)
     }
+
     if (messages.length==0) {
       document.getElementById("chat_bubbles").innerHTML=""
     }
+
+    function Scroll() {
+        const container=document.getElementById("chat_bubbles")
+        const atBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 20;
+
+        if (atBottom) {
+            setTimeout(()=>{
+                document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
+            }, 100)
+        }
+    }
+
+    (async () => {
+        document.getElementById("prompt").value=""
+        document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", await ParseMarkdown(prompt))
+        document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", "Generating...")
+        messages=[...messages, {"role":"assistant", "content":""}]
+        Scroll()
+    })()
+
     LLM_Stream = new EventSource("http://127.0.0.1:{port}/prompt?prompt="+encodeURIComponent(prompt))
 
     LLM_Stream.addEventListener("message", async (event)=>{
@@ -446,19 +469,7 @@ textarea {
       var bubbles=document.getElementById("chat_bubbles").children
       messages[messages.length-1]["content"]+=chunk
       bubbles[bubbles.length-1].children[1].innerHTML=await ParseMarkdown(messages[messages.length-1]["content"])
-      setTimeout(()=>{
-        document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
-      }, 100)
-    })
-
-    LLM_Stream.addEventListener("open", async ()=>{
-      document.getElementById("prompt").value=""
-      document.getElementById("chat_bubbles").innerHTML+=USER_SNIPPET.replace("{text}", await ParseMarkdown(prompt))
-      document.getElementById("chat_bubbles").innerHTML+=AI_SNIPPET.replace("{text}", "Generating...")
-      messages=[...messages, {"role":"assistant", "content":""}]
-      setTimeout(()=>{
-        document.getElementById("chat_bubbles").scrollTop = document.getElementById("chat_bubbles").scrollHeight
-      }, 100)
+      Scroll()
     })
 
     LLM_Stream.addEventListener("error", (error) => {
