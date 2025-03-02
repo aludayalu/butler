@@ -1,18 +1,10 @@
-from flask import request, redirect
+from flask import request
 from monster import render, Flask
-import sys, json, os, threading, flask
-import llm
+import sys, json, flask, llm
 
 app = Flask(__name__)
 marked="<script>"+open("public/marked.js").read()+"</script>"
-
-def start_ollama():
-    os.system("ollama run freerainboxbox/phi4:14b-q3_K_L")
-    llm.quick_response("hi")
-
 messages=[]
-
-threading.Thread(target=start_ollama).start()
 
 @app.get("/")
 def home():

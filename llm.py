@@ -57,11 +57,11 @@ def quick_response(prompt):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "freerainboxbox/phi4:14b-q3_K_L",
+        "model": "freerainboxbox/phi4:14b-q3_K_M",
         "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
         "stream": False,
         "options": {
-            "num_ctx": 24576
+            "num_ctx": 6144
         }
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
@@ -81,11 +81,11 @@ def send_message(prompt, history=[]):
     system_prompt["content"]=system_prompt["content"].replace("{time}", formatted_datetime)
 
     payload = {
-        "model": "freerainboxbox/phi4:14b-q3_K_L",
+        "model": "freerainboxbox/phi4:14b-q3_K_M",
         "messages": [system_prompt] + history + [{"role": "user", "content": prompt}],
         "stream": True,
         "options": {
-            "num_ctx": 24576
+            "num_ctx": 6144
         }
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
