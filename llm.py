@@ -57,7 +57,7 @@ def quick_response(prompt):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "codegeex4",
+        "model": "freerainboxbox/phi4:14b-q3_K_L",
         "messages": [{"role":"system", "content":"Reply minimally."}, {"role":"user", "content":prompt}],
         "stream": False,
         "options": {
@@ -81,7 +81,7 @@ def send_message(prompt, history=[]):
     system_prompt["content"]=system_prompt["content"].replace("{time}", formatted_datetime)
 
     payload = {
-        "model": "codegeex4",
+        "model": "freerainboxbox/phi4:14b-q3_K_L",
         "messages": [system_prompt] + history + [{"role": "user", "content": prompt}],
         "stream": True,
         "options": {
