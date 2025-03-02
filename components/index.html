@@ -445,7 +445,7 @@ textarea {
 
     function Scroll(forceful=false) {
         const container=document.getElementById("chat_bubbles")
-        const atBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 20;
+        const atBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 5;
 
         if (atBottom || forceful) {
             setTimeout(()=>{
@@ -462,14 +462,20 @@ textarea {
         Scroll(true)
     })()
 
+    var first_chunk=true
+
     LLM_Stream = new EventSource("http://127.0.0.1:{port}/prompt?prompt="+encodeURIComponent(prompt))
 
     LLM_Stream.addEventListener("message", async (event)=>{
-      var chunk=JSON.parse(event.data)["message"]["content"]
-      var bubbles=document.getElementById("chat_bubbles").children
-      messages[messages.length-1]["content"]+=chunk
-      bubbles[bubbles.length-1].children[1].innerHTML=await ParseMarkdown(messages[messages.length-1]["content"])
-      Scroll()
+        if (first_chunk) {
+            first_chunk=false
+            Scroll(true)
+        }
+        var chunk=JSON.parse(event.data)["message"]["content"]
+        var bubbles=document.getElementById("chat_bubbles").children
+        messages[messages.length-1]["content"]+=chunk
+        bubbles[bubbles.length-1].children[1].innerHTML=await ParseMarkdown(messages[messages.length-1]["content"])
+        Scroll()
     })
 
     LLM_Stream.addEventListener("error", (error) => {
