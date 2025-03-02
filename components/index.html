@@ -2,7 +2,6 @@
 <post>return marked</post>
 <script>
   const selectedText=`{selectedText}`
-  var selectedTextBeenUsed=false
 
   function getLanguageFromExtension(extension) {
     const extensionMap = {
@@ -248,10 +247,6 @@ function GenerateUUID() {
   transform: scale(1.2);
 }
 
-.textarea:focus {
-  outline: 1.4px solid rgba(255, 255, 255, 0.25);
-}
-
 pre {
   padding: 10px;
   background: #3c3c3c;
@@ -287,7 +282,18 @@ code {
 }
 
 textarea {
+  border: none;
+  outline: none;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+* {
+  color: white;
 }
 </style>
 
@@ -308,15 +314,15 @@ textarea {
 
 <div class="wrapper">
     <div>
-      <div id="chat_bubbles" style="height: 90vh; width: 100vw; overflow-y: auto;">
+      <div id="chat_bubbles" style="height: 88vh; width: 100vw; overflow-y: auto;">
         <div class="wrapper" style="height: 95%; width: 100%;">
           <div>
             <h1>Butler</h1>
           </div>
         </div>
       </div>
-      <div style="height: 10vh; width: 100vw;" class="wrapper">
-        <textarea id="prompt" class="textarea" style="padding: 5px; border-radius: 10px; border: 1.4px solid rgba(255, 255, 255, 0.15); width: 90vw; height: 5vh; background: transparent; color: white;"
+      <div style="height: 10vh; width: 100vw; border-top: 1.4px solid white;" class="wrapper">
+        <textarea id="prompt" class="textarea" style="padding: 5px; width: 99vw; max-width: 99vw; height: 8vh; background: transparent; color: white;"
         placeholder="Message here"
         ></textarea>
       </div>
@@ -426,9 +432,9 @@ textarea {
       fetch("http://127.0.0.1:{port}/new")
       return
     }
-    if (!selectedTextBeenUsed) {
-      selectedTextBeenUsed=true
-      prompt="## Selected Snippet\n```"+snippetLanguage+"\n"+selectedText+"\n```\n## User Prompt\n"+prompt
+    prompt = String(prompt).trimStart()
+    if (String(prompt).startsWith("/snippet")) {
+      prompt="## Selected Snippet\n```"+snippetLanguage+"\n"+selectedText+"\n```\n## User Prompt\n"+String(prompt).slice("/snippet".length + 1)
     }
     if (messages.length==0) {
       document.getElementById("chat_bubbles").innerHTML=""
